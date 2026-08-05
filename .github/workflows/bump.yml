@@ -1,0 +1,71 @@
+name: Bump
+
+# Polls rather than being pushed to.
+#
+# The alternative is a repository_dispatch from waanvar/samong's release workflow,
+# which is instant — but cross-repo dispatch needs a long-lived personal access
+# token stored as a secret in both places. A formula lagging a release by a few
+# hours costs nothing; a leaked PAT with repo scope costs a great deal. Use
+# workflow_dispatch when it needs to be immediate.
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Specific version to pin, e.g. 0.4.0. Blank means the latest release."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rewrite the formula if upstream moved
+        id: bump
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            python3 bump.py --version "${{ inputs.version }}"
+          else
+            python3 bump.py
+          fi
+          if git diff --quiet -- Formula/samong.rb; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "version=$(sed -n 's/^  version "\(.*\)"/\1/p' Formula/samong.rb)" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Verified before it is committed, not after. A tap whose default branch
+      # holds a formula that does not install is worse than one that lags.
+      - name: The rewritten formula must install and pass its own test
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          brew style Formula/samong.rb
+          brew install --formula --verbose ./Formula/samong.rb
+          brew test --formula ./Formula/samong.rb
+
+      - name: Commit
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/samong.rb
+          git commit -F - <<MSG
+          chore: samong ${{ steps.bump.outputs.version }}
+
+          Version and all three checksums taken from the .sha256 files published
+          beside the release archives. Installed and tested on this runner before
+          the commit — a tap whose main branch does not install is worse than one
+          that lags a few hours.
+          MSG
+          git push
