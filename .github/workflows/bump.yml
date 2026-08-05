@@ -26,7 +26,9 @@ concurrency:
 
 jobs:
   bump:
-    runs-on: ubuntu-latest
+    # macOS, because the formula has to be installed and tested before the commit
+    # and only a Mac exercises the arm64 archive most users will take.
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -40,10 +42,14 @@ jobs:
           fi
           if git diff --quiet -- Formula/samong.rb; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "already current"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "version=$(sed -n 's/^  version "\(.*\)"/\1/p' Formula/samong.rb)" >> "$GITHUB_OUTPUT"
           fi
+
+      - uses: Homebrew/actions/setup-homebrew@master
+        if: steps.bump.outputs.changed == 'true'
 
       # Verified before it is committed, not after. A tap whose default branch
       # holds a formula that does not install is worse than one that lags.
@@ -51,21 +57,22 @@ jobs:
         if: steps.bump.outputs.changed == 'true'
         run: |
           brew style Formula/samong.rb
-          brew install --formula --verbose ./Formula/samong.rb
-          brew test --formula ./Formula/samong.rb
+          brew tap-new ci/samong --no-git
+          cp Formula/samong.rb "$(brew --repo ci/samong)/Formula/samong.rb"
+          brew install --formula --verbose ci/samong/samong
+          brew test --formula ci/samong/samong
 
       - name: Commit
         if: steps.bump.outputs.changed == 'true'
+        env:
+          VERSION: ${{ steps.bump.outputs.version }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Formula/samong.rb
-          git commit -F - <<MSG
-          chore: samong ${{ steps.bump.outputs.version }}
-
-          Version and all three checksums taken from the .sha256 files published
-          beside the release archives. Installed and tested on this runner before
-          the commit — a tap whose main branch does not install is worse than one
-          that lags a few hours.
-          MSG
+          printf '%s\n\n%s\n' \
+            "chore: samong $VERSION" \
+            "Version and all three checksums taken from the .sha256 files published beside the release archives. Installed and tested on this runner before the commit — a tap whose main branch does not install is worse than one that lags a few hours." \
+            > /tmp/msg
+          git commit -F /tmp/msg
           git push

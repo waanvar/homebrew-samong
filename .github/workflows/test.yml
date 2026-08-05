@@ -22,17 +22,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Style and audit
-        run: |
-          brew style Formula/samong.rb
-          brew audit --formula --strict Formula/samong.rb || \
-            echo "::warning::brew audit raised something — read it above; strict audit is advisory for a personal tap"
+      # ubuntu runners have no Homebrew at all — the first run failed with
+      # "brew: command not found". The official action installs it on both.
+      - uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Install from the formula
-        run: brew install --formula --verbose ./Formula/samong.rb
+      - name: Style
+        run: brew style Formula/samong.rb
+
+      - name: Audit (advisory)
+        continue-on-error: true
+        run: brew audit --formula --strict Formula/samong.rb
+
+      # Homebrew refuses a formula given as a path — "Homebrew requires formulae
+      # to be in a tap" — so the checkout is copied into a throwaway local tap.
+      # That also means a pull request tests the formula in the branch rather than
+      # whatever is already published.
+      - name: Install it, from a tap made out of this checkout
+        run: |
+          brew tap-new ci/samong --no-git
+          cp Formula/samong.rb "$(brew --repo ci/samong)/Formula/samong.rb"
+          brew install --formula --verbose ci/samong/samong
 
       - name: The formula's own test block
-        run: brew test --formula ./Formula/samong.rb
+        run: brew test --formula ci/samong/samong
 
       # The reason this tap exists. Homebrew fetches with curl, which does not set
       # com.apple.quarantine, so Gatekeeper has nothing to refuse — unlike the same
@@ -47,7 +59,6 @@ jobs:
             exit 1
           fi
           echo "no com.apple.quarantine — Gatekeeper will not intervene"
-          # And it runs, which is the thing the attribute would have prevented.
           samong --version
 
       - name: All four binaries are on PATH and answer
