@@ -44,7 +44,7 @@ jobs:
           brew install --formula --verbose ci/samong/samong
 
       - name: The formula's own test block
-        run: brew test --formula ci/samong/samong
+        run: brew test ci/samong/samong
 
       # The reason this tap exists. Homebrew fetches with curl, which does not set
       # com.apple.quarantine, so Gatekeeper has nothing to refuse — unlike the same

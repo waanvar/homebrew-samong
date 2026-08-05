@@ -60,7 +60,7 @@ jobs:
           brew tap-new ci/samong --no-git
           cp Formula/samong.rb "$(brew --repo ci/samong)/Formula/samong.rb"
           brew install --formula --verbose ci/samong/samong
-          brew test --formula ci/samong/samong
+          brew test ci/samong/samong
 
       - name: Commit
         if: steps.bump.outputs.changed == 'true'
