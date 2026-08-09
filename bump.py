@@ -14,6 +14,7 @@ Usage: bump.py [--version X.Y.Z] [--check]
 """
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -34,7 +35,26 @@ SHA256 = re.compile(r"^[a-f0-9]{64}$")
 
 
 def get(url: str) -> bytes:
-    request = urllib.request.Request(url, headers={"User-Agent": "homebrew-samong-bump"})
+    """Fetch a URL, authenticating API calls when a token is in the environment.
+
+    Unauthenticated GitHub API requests are limited to **60 per hour per IP**, and
+    a shared Actions runner burns that between jobs belonging to other people
+    entirely. Every scheduled run of this workflow failed with
+    `403: rate limit exceeded` for five runs straight — so the formula sat at the
+    previous release and `brew install samong` quietly handed people an old
+    version, which is precisely the failure this script exists to prevent. With
+    `GITHUB_TOKEN` the limit is 5,000/hour and no secret has to be stored.
+
+    The header goes only to `api.github.com`. The `.sha256` URLs redirect to
+    `objects.githubusercontent.com`, which rejects an Authorization header it did
+    not expect — so sending it everywhere would trade an intermittent 403 for a
+    reliable 400.
+    """
+    headers = {"User-Agent": "homebrew-samong-bump"}
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    if token and url.startswith("https://api.github.com/"):
+        headers["Authorization"] = "Bearer " + token
+    request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=TIMEOUT) as response:  # noqa: S310
         return response.read()
 
