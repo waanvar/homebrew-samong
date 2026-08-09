@@ -109,6 +109,9 @@ jobs:
         if: steps.bump.outputs.changed == 'true'
         env:
           VERSION: ${{ steps.bump.outputs.version }}
+          # Needed because the push below names its remote explicitly rather than
+          # relying on what actions/checkout left behind — see the comment there.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -118,4 +121,10 @@ jobs:
             "Version and all three checksums taken from the .sha256 files published beside the release archives. Installed and tested on this runner before the commit — a tap whose main branch does not install is worse than one that lags a few hours." \
             > /tmp/msg
           git commit -F /tmp/msg
-          git push
+
+          # Both the remote and the refspec are explicit, because setup-homebrew
+          # re-creates this checkout with `git init` — which leaves `main` with no
+          # upstream (a bare `git push` fails with "has no upstream branch") and
+          # discards the credential actions/checkout had configured. Naming the
+          # URL and the refspec depends on neither. The token is masked in logs.
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:main
