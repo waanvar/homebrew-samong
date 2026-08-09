@@ -32,6 +32,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Before the rewrite, not after, and unconditionally.
+      #
+      # This repository is named `homebrew-*`, so setup-homebrew treats it as a tap
+      # and re-runs its checkout logic in the workspace — the log says
+      # "Deleting the contents of .../homebrew-samong" followed by `git init`. Run
+      # after the rewrite, it threw the rewrite away: the formula went back to the
+      # previous version, the step below then installed and tested *that* while
+      # claiming to have tested the rewritten one, and Commit found a clean tree
+      # and failed with "nothing to commit". A green step that verified the
+      # opposite of its own name.
+      #
+      # The cost of running it always is about half a minute on days when nothing
+      # changed. The cost of the old order was a tap that could never bump itself.
+      - uses: Homebrew/actions/setup-homebrew@master
+
       - name: Rewrite the formula if upstream moved
         id: bump
         # bump.py asks the API which release is latest. Unauthenticated that is 60
@@ -55,19 +70,40 @@ jobs:
             echo "version=$(sed -n 's/^  version "\(.*\)"/\1/p' Formula/samong.rb)" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: Homebrew/actions/setup-homebrew@master
-        if: steps.bump.outputs.changed == 'true'
-
       # Verified before it is committed, not after. A tap whose default branch
       # holds a formula that does not install is worse than one that lags.
       - name: The rewritten formula must install and pass its own test
         if: steps.bump.outputs.changed == 'true'
+        env:
+          VERSION: ${{ steps.bump.outputs.version }}
         run: |
+          # Assert the subject before testing it. This step once passed having
+          # installed the *previous* version, because something between the
+          # rewrite and here had restored the file — and nothing in the step
+          # noticed, so its name was simply untrue. Checking that the formula on
+          # disk is the version the bump produced is what makes the rest of this
+          # step mean what it says.
+          on_disk=$(sed -n 's/^  version "\(.*\)"/\1/p' Formula/samong.rb)
+          if [ "$on_disk" != "$VERSION" ]; then
+            echo "::error::about to test $on_disk but the bump produced $VERSION — the rewrite did not survive to this step"
+            exit 1
+          fi
+          echo "testing the formula at $on_disk"
+
           brew style Formula/samong.rb
           brew tap-new ci/samong --no-git
           cp Formula/samong.rb "$(brew --repo ci/samong)/Formula/samong.rb"
           brew install --formula --verbose ci/samong/samong
           brew test ci/samong/samong
+
+          # And the binary that got installed has to be that version too, which is
+          # the only claim that survives a formula pointing at the wrong archive.
+          got=$(samong --version | tr -d '\r' | awk '{print $NF}')
+          if [ "$got" != "$VERSION" ]; then
+            echo "::error::installed samong reports $got, expected $VERSION"
+            exit 1
+          fi
+          echo "installed samong reports $got"
 
       - name: Commit
         if: steps.bump.outputs.changed == 'true'
