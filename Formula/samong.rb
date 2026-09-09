@@ -13,24 +13,24 @@
 class Samong < Formula
   desc "Local-first, Obsidian-compatible knowledge base with Thai full-text search"
   homepage "https://samong.dev"
-  version "0.4.1"
+  version "0.5.0"
   license "Apache-2.0"
 
   on_macos do
     on_arm do
-      url "https://github.com/waanvar/samong/releases/download/v0.4.1/samong-v0.4.1-aarch64-macos.tar.gz"
-      sha256 "d469ef73cfd08ccdd6e301dc41f6ef98fbdc44fdb96e9ab552f726358b8b67b8"
+      url "https://github.com/waanvar/samong/releases/download/v0.5.0/samong-v0.5.0-aarch64-macos.tar.gz"
+      sha256 "81425871a2b7a8fc40a17d46b6fa23fafea2db5d03ecf7ccb8fc34d3135e66a8"
     end
     on_intel do
-      url "https://github.com/waanvar/samong/releases/download/v0.4.1/samong-v0.4.1-x86_64-macos.tar.gz"
-      sha256 "8761d095051807b3b47b3db14b14c4e0a0baf7a6d82c164c90ecf0f476ade834"
+      url "https://github.com/waanvar/samong/releases/download/v0.5.0/samong-v0.5.0-x86_64-macos.tar.gz"
+      sha256 "f61cf9563054c5b598d2cab38182b3418cbae851a62c65876353603e5456c4b7"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/waanvar/samong/releases/download/v0.4.1/samong-v0.4.1-x86_64-linux.tar.gz"
-      sha256 "5f4e113f9e585d68b2c66c2ccb51f8b6d052d185397b2ccc3670522fa4ee57f6"
+      url "https://github.com/waanvar/samong/releases/download/v0.5.0/samong-v0.5.0-x86_64-linux.tar.gz"
+      sha256 "5190962c02d9e3a5ad758a896045d1e57478cb6d09eb013afdcb90ae1a459caf"
     end
     # No aarch64-linux build is published upstream, so there is deliberately no
     # on_arm block: brew refusing with "no available formula" is clearer than
