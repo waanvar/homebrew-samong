@@ -45,7 +45,7 @@ jobs:
       #
       # The cost of running it always is about half a minute on days when nothing
       # changed. The cost of the old order was a tap that could never bump itself.
-      - uses: Homebrew/actions/setup-homebrew@master
+      - uses: Homebrew/actions/setup-homebrew@main
 
       - name: Rewrite the formula if upstream moved
         id: bump
