@@ -7,34 +7,41 @@
 # here has nothing for Gatekeeper to object to. The CI in this repo asserts that
 # — see .github/workflows/test.yml.
 #
+# Every platform Homebrew can simulate needs a url. `brew tap` runs a readall
+# across all of them, and a block with no url fails it with "formula requires at
+# least a URL" — reported as "invalid syntax in tap", after which brew deletes the
+# clone. Leaving aarch64-linux out to make brew say "no available formula" made
+# the tap untappable on every machine instead, including the Macs it installs on.
+#
 # Generated fields (version, url, sha256) are rewritten by .github/workflows/bump.yml
 # from the .sha256 files each release publishes. Editing them by hand means the
 # formula goes stale the next time upstream releases.
 class Samong < Formula
   desc "Local-first, Obsidian-compatible knowledge base with Thai full-text search"
   homepage "https://samong.dev"
-  version "0.5.0"
+  version "0.6.0"
   license "Apache-2.0"
 
   on_macos do
     on_arm do
-      url "https://github.com/waanvar/samong/releases/download/v0.5.0/samong-v0.5.0-aarch64-macos.tar.gz"
-      sha256 "81425871a2b7a8fc40a17d46b6fa23fafea2db5d03ecf7ccb8fc34d3135e66a8"
+      url "https://github.com/waanvar/samong/releases/download/v0.6.0/samong-v0.6.0-aarch64-macos.tar.gz"
+      sha256 "095d0ae10543e6ff6850dc460c935834c3de5747df185d2fedb60c9ab968d6d5"
     end
     on_intel do
-      url "https://github.com/waanvar/samong/releases/download/v0.5.0/samong-v0.5.0-x86_64-macos.tar.gz"
-      sha256 "f61cf9563054c5b598d2cab38182b3418cbae851a62c65876353603e5456c4b7"
+      url "https://github.com/waanvar/samong/releases/download/v0.6.0/samong-v0.6.0-x86_64-macos.tar.gz"
+      sha256 "f67e51955031220c3fd010592803deb7ba274957c5c36809e2c5ea63a30800a3"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/waanvar/samong/releases/download/v0.5.0/samong-v0.5.0-x86_64-linux.tar.gz"
-      sha256 "5190962c02d9e3a5ad758a896045d1e57478cb6d09eb013afdcb90ae1a459caf"
+      url "https://github.com/waanvar/samong/releases/download/v0.6.0/samong-v0.6.0-x86_64-linux.tar.gz"
+      sha256 "a63b9af5f51ec6bce8aa6f39e677870158627a057c814795e7a0e84815c67ce9"
     end
-    # No aarch64-linux build is published upstream, so there is deliberately no
-    # on_arm block: brew refusing with "no available formula" is clearer than
-    # installing an x86_64 binary that cannot run.
+    on_arm do
+      url "https://github.com/waanvar/samong/releases/download/v0.6.0/samong-v0.6.0-aarch64-linux.tar.gz"
+      sha256 "7bace87111721f8ab48340d8eb0d695c618b44e90846aed9687a71410d74b1f2"
+    end
   end
 
   def install

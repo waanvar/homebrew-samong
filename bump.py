@@ -30,6 +30,7 @@ TARGETS = [
     ("macos_arm", "aarch64-macos.tar.gz"),
     ("macos_intel", "x86_64-macos.tar.gz"),
     ("linux_intel", "x86_64-linux.tar.gz"),
+    ("linux_arm", "aarch64-linux.tar.gz"),
 ]
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 
@@ -128,7 +129,7 @@ def main() -> int:
     if stale:
         raise SystemExit("a url still points at another version:\n" + "\n".join(stale))
     if len(set(re.findall(r'sha256 "([a-f0-9]{64})"', written))) != len(TARGETS):
-        raise SystemExit("expected three distinct checksums")
+        raise SystemExit(f"expected {len(TARGETS)} distinct checksums")
 
     print(f"formula rewritten for {version}")
     # Only when there is a repository to diff against — this also runs from a

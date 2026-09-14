@@ -5,9 +5,16 @@ Obsidian-compatible knowledge base. Notes are Markdown files in a folder you
 already have, and nothing leaves your machine.
 
 ```sh
+brew trust waanvar/samong
 brew tap waanvar/samong
 brew install samong
 ```
+
+`brew trust` first, and not by preference: since Homebrew 6.0 a third-party tap
+is not loaded until it is trusted, and `brew tap` on an untrusted tap fails with
+`invalid syntax in tap` — an error about the formula, for a formula that is fine.
+Trust is recorded in `~/.homebrew/trust.json`; `brew trust --formula
+waanvar/samong/samong` trusts this one formula instead of the whole tap.
 
 Installs four binaries: `samong` (CLI), `samong-server` (local web UI and API),
 `samong-mcp` (MCP server for AI agents), and `samong-app` (double-click launcher).
@@ -32,7 +39,7 @@ macOS runner and fails if the installed binary carries the attribute.
 | macOS arm64 (Apple Silicon) | yes — installed, tested, quarantine checked |
 | Linux x86_64 | yes — installed and tested |
 | macOS x86_64 (Intel) | **no** — GitHub has no hosted Intel Mac runner. The formula is published for it and the archive is the same one the upstream release builds and checksums, but nothing installs it before you do. |
-| Linux arm64 | not published — upstream builds no `aarch64-linux` archive, so `brew` will say there is no formula for your platform rather than install something that cannot run |
+| Linux arm64 | yes — installed and tested, since 0.6.0 published an `aarch64-linux` archive |
 
 The formula's `test do` block does more than check `--version`: it writes two
 notes, searches for a word inside one of them, follows a `[[wikilink]]`, and
@@ -42,8 +49,8 @@ release were built wrong.
 
 ## How it stays current
 
-`bump.py` reads the newest upstream release and rewrites the version, the three
-URLs and the three checksums, taking the digests from the `.sha256` files each
+`bump.py` reads the newest upstream release and rewrites the version, the four
+URLs and the four checksums, taking the digests from the `.sha256` files each
 release already publishes. `.github/workflows/bump.yml` runs it every six hours,
 **installs and tests the result on the runner, and only then commits**.
 

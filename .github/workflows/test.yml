@@ -14,10 +14,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macOS arm64 and Linux x86_64 are the two platforms with runners. Intel
-        # Macs have no hosted runner any more, so that combination is published
-        # unverified — stated in the README rather than left to be assumed.
-        os: [macos-latest, ubuntu-latest]
+        # Intel Macs have no hosted runner any more, so that combination is
+        # published unverified — stated in the README rather than left to be
+        # assumed. The other three install here.
+        os: [macos-latest, ubuntu-latest, ubuntu-24.04-arm]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -37,11 +37,21 @@ jobs:
       # to be in a tap" — so the checkout is copied into a throwaway local tap.
       # That also means a pull request tests the formula in the branch rather than
       # whatever is already published.
-      - name: Install it, from a tap made out of this checkout
+      - name: A tap made out of this checkout
         run: |
           brew tap-new ci/samong --no-git
           cp Formula/samong.rb "$(brew --repo ci/samong)/Formula/samong.rb"
-          brew install --formula --verbose ci/samong/samong
+          brew trust ci/samong
+
+      # The check that would have caught the tap being untappable. A runner only
+      # ever loads the formula for the system it is, so a block missing its url
+      # was invisible here while `brew tap` — which reads every platform Homebrew
+      # can simulate — refused the whole tap on every machine, Macs included.
+      - name: It loads on every platform brew can simulate
+        run: brew readall --os=all --arch=all ci/samong
+
+      - name: Install it
+        run: brew install --formula --verbose ci/samong/samong
 
       - name: The formula's own test block
         run: brew test ci/samong/samong
