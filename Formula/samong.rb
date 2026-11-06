@@ -19,28 +19,28 @@
 class Samong < Formula
   desc "Local-first, Obsidian-compatible knowledge base with Thai full-text search"
   homepage "https://samong.dev"
-  version "0.6.1"
+  version "0.7.0"
   license "Apache-2.0"
 
   on_macos do
     on_arm do
-      url "https://github.com/waanvar/samong/releases/download/v0.6.1/samong-v0.6.1-aarch64-macos.tar.gz"
-      sha256 "702093563c88fd510b1c85e31917ca994932652159333755dfdcb9c19f51d43d"
+      url "https://github.com/waanvar/samong/releases/download/v0.7.0/samong-v0.7.0-aarch64-macos.tar.gz"
+      sha256 "cbcefdd4d68afcc4c5283558e2e9a0edddffaa45347e39129bd36f09e44a6119"
     end
     on_intel do
-      url "https://github.com/waanvar/samong/releases/download/v0.6.1/samong-v0.6.1-x86_64-macos.tar.gz"
-      sha256 "7749e3c07147748866102706ec907db7c32cf3a7302568f27d1ccaf80226336b"
+      url "https://github.com/waanvar/samong/releases/download/v0.7.0/samong-v0.7.0-x86_64-macos.tar.gz"
+      sha256 "e6ce2ed0bc75dfc92d0d1938b1c8aef1e3fe207eb5697d6c4e72160c2ee830a1"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/waanvar/samong/releases/download/v0.6.1/samong-v0.6.1-x86_64-linux.tar.gz"
-      sha256 "60ba434d8ebcdd3d7bf244a32db1585725b46f991cd0fa63b7aeaabfbd20eca6"
+      url "https://github.com/waanvar/samong/releases/download/v0.7.0/samong-v0.7.0-x86_64-linux.tar.gz"
+      sha256 "c00135b7845dec15449e8bdbd5a6d3ece5446031623f16717b003acbbc7bfc72"
     end
     on_arm do
-      url "https://github.com/waanvar/samong/releases/download/v0.6.1/samong-v0.6.1-aarch64-linux.tar.gz"
-      sha256 "e0adeb8cb3057a0c459a9e9d47b610a3d8b06f6767b0a2b8e33ffa99aa609e31"
+      url "https://github.com/waanvar/samong/releases/download/v0.7.0/samong-v0.7.0-aarch64-linux.tar.gz"
+      sha256 "63a7f429feaa62499c70b4b0b21f0b0e560f4b018bba0c95edad24c9b8c65a09"
     end
   end
 
